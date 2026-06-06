@@ -1,0 +1,41 @@
+// OCR end-to-end DARI PNG: baca deretan digit (mis. NIK) dari gambar PNG asli,
+// pakai model font terlatih (model_font.txt). Decode PNG via builtin bacaGambar.
+// Jalankan dulu ocr_latih_dataset.tenun. Lalu: tenun run examples/ocr_nik.tenun
+impor "../src/citra.tenun";
+impor "../../modul-belajar/src/belajar.tenun";
+
+biar bobot: [][][]desimal = jar_muat_bobot("model_font.txt");
+biar bias: [][]desimal = jar_muat_bias("model_font.txt");
+
+biar gambar: []desimal = citra_png("nik.png");      // PNG -> grayscale 0..1 (putih=1)
+biar tinta: []desimal = citra_balik(gambar);        // tinta (gelap) -> 1.0
+biar biner: []desimal = citra_ambang(tinta, 0.5);   // untuk segmentasi
+
+biar kotak: []desimal = segmen_kolom(biner);        // [x0,x1,x0,x1,...]
+biar jumlah: bulat = panjang(kotak) / 2;
+cetak("karakter terdeteksi:");
+cetak(jumlah);
+
+biar hasil: teks = "";
+untuk k dari 0 sampai jumlah {
+    biar x0: bulat = bulatDari(kotak[k * 2]);
+    biar x1: bulat = bulatDari(kotak[k * 2 + 1]);
+    biar lebar: bulat = x1 - x0;
+
+    // potong kolom glyph, lalu rapatkan vertikal (bounding box).
+    biar kolom: []desimal = citra_potong(biner, x0, 0, lebar, citra_tinggi(biner));
+    biar yr: []desimal = segmen_baris(kolom);
+    biar y0: bulat = 0;
+    biar y1: bulat = citra_tinggi(biner);
+    kalau panjang(yr) >= 2 {
+        y0 = bulatDari(yr[0]);
+        y1 = bulatDari(yr[panjang(yr) - 1]);
+    }
+
+    biar glyph: []desimal = citra_potong(tinta, x0, y0, lebar, y1 - y0);
+    biar kecil: []desimal = citra_ubah_ukuran(glyph, 12, 16);
+    biar tebak: bulat = stat_argmaks(jar_prediksi(bobot, bias, citra_ke_vektor(kecil)));
+    hasil = hasil + keTeks(tebak);
+}
+cetak("NIK terbaca:");
+cetak(hasil);

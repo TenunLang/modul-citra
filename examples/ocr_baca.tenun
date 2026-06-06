@@ -1,0 +1,41 @@
+// OCR generik: baca deretan digit dari PNG apa pun memakai model_font.txt.
+// Path gambar via argumen CLI (default "nik.png").
+//   tenun run examples/ocr_baca.tenun nik_times.png
+impor "../src/citra.tenun";
+impor "../../modul-belajar/src/belajar.tenun";
+
+biar arg: []teks = argumen();
+biar path: teks = "nik.png";
+kalau panjang(arg) > 0 { path = arg[0]; }
+
+biar bobot: [][][]desimal = jar_muat_bobot("model_font.txt");
+biar bias: [][]desimal = jar_muat_bias("model_font.txt");
+
+biar gambar: []desimal = citra_png(path);
+biar tinta: []desimal = citra_balik(gambar);
+biar biner: []desimal = citra_ambang(tinta, 0.5);
+
+biar kotak: []desimal = segmen_kolom(biner);
+biar jumlah: bulat = panjang(kotak) / 2;
+
+biar hasil: teks = "";
+untuk k dari 0 sampai jumlah {
+    biar x0: bulat = bulatDari(kotak[k * 2]);
+    biar x1: bulat = bulatDari(kotak[k * 2 + 1]);
+    biar lebar: bulat = x1 - x0;
+    kalau lebar >= 2 {
+        biar kolom: []desimal = citra_potong(biner, x0, 0, lebar, citra_tinggi(biner));
+        biar yr: []desimal = segmen_baris(kolom);
+        biar y0: bulat = 0;
+        biar y1: bulat = citra_tinggi(biner);
+        kalau panjang(yr) >= 2 {
+            y0 = bulatDari(yr[0]);
+            y1 = bulatDari(yr[panjang(yr) - 1]);
+        }
+        biar glyph: []desimal = citra_potong(tinta, x0, y0, lebar, y1 - y0);
+        biar kecil: []desimal = citra_ubah_ukuran(glyph, 12, 16);
+        hasil = hasil + keTeks(stat_argmaks(jar_prediksi(bobot, bias, citra_ke_vektor(kecil))));
+    }
+}
+cetak(path);
+cetak("terbaca: " + hasil);

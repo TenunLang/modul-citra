@@ -37,6 +37,21 @@ fungsi citra_muat_pgm(path: teks): []desimal {
     kembali c;
 }
 
+// Muat PNG 8-bit (grayscale/RGB/RGBA/palette) -> citra grayscale 0..1.
+// Memakai builtin compiler `bacaGambar` (decode PNG bawaan).
+fungsi citra_png(path: teks): []desimal {
+    biar tok: []teks = _citra_token(bacaGambar(path));
+    biar lebar: bulat = bulatDari(keDesimal(tok[0]));
+    biar tinggi: bulat = bulatDari(keDesimal(tok[1]));
+    biar c: []desimal = [];
+    c = dorong(c, desimalDari(lebar));
+    c = dorong(c, desimalDari(tinggi));
+    untuk i dari 0 sampai lebar * tinggi {
+        c = dorong(c, keDesimal(tok[2 + i]) / 255.0);
+    }
+    kembali c;
+}
+
 // Muat PPM P3 (RGB) -> citra grayscale (luminans 0.299R+0.587G+0.114B).
 fungsi citra_muat_ppm(path: teks): []desimal {
     biar tok: []teks = _citra_token(bacaFile(path));

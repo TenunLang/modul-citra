@@ -1,0 +1,50 @@
+// Latih classifier digit dari DATASET font sungguhan (anti-alias, ter-augmentasi).
+// Dataset: digit_dataset.txt, tiap baris "label v0 v1 ... v191" (kotak 12x16, gray 0-255).
+// Fitur = 1 - gray/255 (tinta = tinggi). Simpan model -> model_font.txt.
+// Jalankan: tenun run examples/ocr_latih_dataset.tenun
+impor "../../modul-belajar/src/belajar.tenun";
+
+biar isi: teks = bacaFile("digit_dataset.txt");
+biar baris: []teks = pisah(isi, "\n");
+
+biar X: [][]desimal = [];
+biar Y: [][]desimal = [];
+untuk b dari 0 sampai panjang(baris) {
+    biar ln: teks = pangkas(ganti(baris[b], "\r", ""));
+    kalau panjangTeks(ln) > 0 {
+        biar tok: []teks = pisah(ln, " ");
+        biar label: bulat = bulatDari(keDesimal(tok[0]));
+        biar fitur: []desimal = [];
+        untuk i dari 1 sampai panjang(tok) {
+            fitur = dorong(fitur, 1.0 - keDesimal(tok[i]) / 255.0);
+        }
+        X = dorong(X, fitur);
+        Y = dorong(Y, data_satu_panas(label, 10));
+    }
+}
+cetak("jumlah sampel:");
+cetak(panjang(X));
+cetak("dimensi fitur:");
+cetak(panjang(X[0]));
+
+biar lapisan: []bulat = [192, 48, 10];
+biar bobot: [][][]desimal = jar_bobot_baru(lapisan, 0.3);
+biar bias: [][]desimal = jar_bias_baru(lapisan);
+
+cetak("melatih...");
+biar rugi: desimal = jar_latih(bobot, bias, X, Y, 140, 0.3);
+cetak("rugi akhir:");
+cetak(rugi);
+
+biar tebak: []desimal = [];
+biar asli: []desimal = [];
+untuk i dari 0 sampai panjang(X) {
+    tebak = dorong(tebak, desimalDari(stat_argmaks(jar_prediksi(bobot, bias, X[i]))));
+    biar lbl: bulat = stat_argmaks(Y[i]);
+    asli = dorong(asli, desimalDari(lbl));
+}
+cetak("akurasi latih:");
+cetak(stat_akurasi(tebak, asli));
+
+jar_simpan(bobot, bias, "model_font.txt");
+cetak("model disimpan: model_font.txt");
