@@ -1,0 +1,57 @@
+// core/proses.tenun
+// Pra-pemrosesan citra: ambang (binarisasi), balik, ubah ukuran, potong.
+
+// Binarisasi: piksel >= ambang -> 1.0, selain itu 0.0.
+fungsi citra_ambang(c: []desimal, ambang: desimal): []desimal {
+    biar hasil: []desimal = citra_baru(citra_lebar(c), citra_tinggi(c), 0.0);
+    untuk i dari 0 sampai citra_lebar(c) * citra_tinggi(c) {
+        kalau c[2 + i] >= ambang { hasil[2 + i] = 1.0; }
+    }
+    kembali hasil;
+}
+
+// Ambang otomatis: pakai rata-rata intensitas seluruh piksel.
+fungsi citra_ambang_auto(c: []desimal): []desimal {
+    biar n: bulat = citra_lebar(c) * citra_tinggi(c);
+    biar s: desimal = 0.0;
+    untuk i dari 0 sampai n { s = s + c[2 + i]; }
+    kembali citra_ambang(c, s / desimalDari(n));
+}
+
+// Balik intensitas (1 - v). Berguna saat teks gelap di latar terang:
+// setelah dibalik, teks bernilai 1.0 (cocok untuk classifier).
+fungsi citra_balik(c: []desimal): []desimal {
+    biar hasil: []desimal = citra_baru(citra_lebar(c), citra_tinggi(c), 0.0);
+    untuk i dari 0 sampai citra_lebar(c) * citra_tinggi(c) {
+        hasil[2 + i] = 1.0 - c[2 + i];
+    }
+    kembali hasil;
+}
+
+// Ubah ukuran (nearest-neighbor) ke lebar x tinggi baru.
+fungsi citra_ubah_ukuran(c: []desimal, lebar2: bulat, tinggi2: bulat): []desimal {
+    biar lebar: bulat = citra_lebar(c);
+    biar tinggi: bulat = citra_tinggi(c);
+    biar hasil: []desimal = citra_baru(lebar2, tinggi2, 0.0);
+    untuk y dari 0 sampai tinggi2 {
+        untuk x dari 0 sampai lebar2 {
+            biar sx: bulat = bulatDari(desimalDari(x) * desimalDari(lebar) / desimalDari(lebar2));
+            biar sy: bulat = bulatDari(desimalDari(y) * desimalDari(tinggi) / desimalDari(tinggi2));
+            kalau sx >= lebar { sx = lebar - 1; }
+            kalau sy >= tinggi { sy = tinggi - 1; }
+            citra_set(hasil, x, y, citra_piksel(c, sx, sy));
+        }
+    }
+    kembali hasil;
+}
+
+// Potong wilayah persegi (x0,y0) berukuran w x h.
+fungsi citra_potong(c: []desimal, x0: bulat, y0: bulat, w: bulat, h: bulat): []desimal {
+    biar hasil: []desimal = citra_baru(w, h, 0.0);
+    untuk y dari 0 sampai h {
+        untuk x dari 0 sampai w {
+            citra_set(hasil, x, y, citra_piksel(c, x0 + x, y0 + y));
+        }
+    }
+    kembali hasil;
+}

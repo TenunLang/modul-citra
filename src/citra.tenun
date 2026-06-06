@@ -1,0 +1,13 @@
+// citra.tenun — titik masuk modul.
+// Pemrosesan citra untuk Tenun: muat PGM/PPM, grayscale, ambang/binarisasi,
+// balik, ubah ukuran, potong, dan segmentasi berbasis proyeksi.
+//
+// Dipadukan dengan modul "belajar" untuk pipeline OCR:
+//   muat -> ambang -> balik -> segmentasi -> ubah ukuran -> classifier MLP.
+//
+// Pakai:  impor "citra";
+
+impor "./core/citra.tenun";
+impor "./core/muat.tenun";
+impor "./core/proses.tenun";
+impor "./core/segmen.tenun";

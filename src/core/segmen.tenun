@@ -1,0 +1,64 @@
+// core/segmen.tenun
+// Segmentasi berbasis proyeksi. Asumsikan citra biner dengan teks = 1.0
+// (pakai citra_ambang lalu citra_balik bila perlu).
+
+// Proyeksi vertikal: jumlah piksel aktif tiap kolom (panjang = lebar).
+fungsi citra_proyeksi_x(c: []desimal): []desimal {
+    biar lebar: bulat = citra_lebar(c);
+    biar tinggi: bulat = citra_tinggi(c);
+    biar p: []desimal = [];
+    untuk x dari 0 sampai lebar {
+        biar s: desimal = 0.0;
+        untuk y dari 0 sampai tinggi { s = s + citra_piksel(c, x, y); }
+        p = dorong(p, s);
+    }
+    kembali p;
+}
+
+// Proyeksi horizontal: jumlah piksel aktif tiap baris (panjang = tinggi).
+fungsi citra_proyeksi_y(c: []desimal): []desimal {
+    biar lebar: bulat = citra_lebar(c);
+    biar tinggi: bulat = citra_tinggi(c);
+    biar p: []desimal = [];
+    untuk y dari 0 sampai tinggi {
+        biar s: desimal = 0.0;
+        untuk x dari 0 sampai lebar { s = s + citra_piksel(c, x, y); }
+        p = dorong(p, s);
+    }
+    kembali p;
+}
+
+// Temukan rentang aktif dalam proyeksi (jalur dengan nilai > ambang).
+// Kembalikan pasangan [mulai, akhir) yang diratakan: [m0,a0,m1,a1,...].
+fungsi _segmen_rentang(p: []desimal, ambang: desimal): []desimal {
+    biar hasil: []desimal = [];
+    biar dalam: bool = salah;
+    biar mulai: bulat = 0;
+    untuk i dari 0 sampai panjang(p) {
+        kalau p[i] > ambang {
+            kalau dalam == salah { dalam = benar; mulai = i; }
+        } lain {
+            kalau dalam == benar {
+                dalam = salah;
+                hasil = dorong(hasil, desimalDari(mulai));
+                hasil = dorong(hasil, desimalDari(i));
+            }
+        }
+    }
+    kalau dalam == benar {
+        hasil = dorong(hasil, desimalDari(mulai));
+        hasil = dorong(hasil, desimalDari(panjang(p)));
+    }
+    kembali hasil;
+}
+
+// Segmentasi kolom -> daftar batas-x glyph [x0,x1,x0,x1,...].
+// Pakai pada satu baris teks untuk memisah tiap karakter.
+fungsi segmen_kolom(c: []desimal): []desimal {
+    kembali _segmen_rentang(citra_proyeksi_x(c), 0.0);
+}
+
+// Segmentasi baris -> daftar batas-y baris teks [y0,y1,y0,y1,...].
+fungsi segmen_baris(c: []desimal): []desimal {
+    kembali _segmen_rentang(citra_proyeksi_y(c), 0.0);
+}

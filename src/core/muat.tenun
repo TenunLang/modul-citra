@@ -1,0 +1,71 @@
+// core/muat.tenun
+// Pemuatan berkas gambar mentah (tanpa kompresi):
+//   PGM P2 (grayscale ASCII) dan PPM P3 (RGB ASCII).
+// Foto JPG/PNG harus dikonversi ke PGM/PPM dahulu (mis. via ImageMagick:
+//   `magick ktp.jpg ktp.pgm`). Decode JPG/PNG belum tersedia di compiler.
+
+// Pecah teks menjadi token angka, abaikan komentar '#' dan spasi berlebih.
+fungsi _citra_token(isi: teks): []teks {
+    biar baris: []teks = pisah(isi, "\n");
+    biar tok: []teks = [];
+    untuk b dari 0 sampai panjang(baris) {
+        biar ln: teks = ganti(baris[b], "\r", "");
+        biar h: bulat = cari(ln, "#");
+        kalau h >= 0 { ln = potong(ln, 0, h); }
+        ln = ganti(ln, "\t", " ");
+        biar bagian: []teks = pisah(ln, " ");
+        untuk i dari 0 sampai panjang(bagian) {
+            kalau panjangTeks(bagian[i]) > 0 { tok = dorong(tok, bagian[i]); }
+        }
+    }
+    kembali tok;
+}
+
+// Muat PGM P2 -> citra grayscale (piksel dinormalisasi 0..1).
+fungsi citra_muat_pgm(path: teks): []desimal {
+    biar tok: []teks = _citra_token(bacaFile(path));
+    biar lebar: bulat = bulatDari(keDesimal(tok[1]));
+    biar tinggi: bulat = bulatDari(keDesimal(tok[2]));
+    biar maks: desimal = keDesimal(tok[3]);
+
+    biar c: []desimal = [];
+    c = dorong(c, desimalDari(lebar));
+    c = dorong(c, desimalDari(tinggi));
+    untuk i dari 0 sampai lebar * tinggi {
+        c = dorong(c, keDesimal(tok[4 + i]) / maks);
+    }
+    kembali c;
+}
+
+// Muat PPM P3 (RGB) -> citra grayscale (luminans 0.299R+0.587G+0.114B).
+fungsi citra_muat_ppm(path: teks): []desimal {
+    biar tok: []teks = _citra_token(bacaFile(path));
+    biar lebar: bulat = bulatDari(keDesimal(tok[1]));
+    biar tinggi: bulat = bulatDari(keDesimal(tok[2]));
+    biar maks: desimal = keDesimal(tok[3]);
+
+    biar c: []desimal = [];
+    c = dorong(c, desimalDari(lebar));
+    c = dorong(c, desimalDari(tinggi));
+    biar n: bulat = lebar * tinggi;
+    untuk i dari 0 sampai n {
+        biar r: desimal = keDesimal(tok[4 + i * 3]) / maks;
+        biar g: desimal = keDesimal(tok[4 + i * 3 + 1]) / maks;
+        biar b: desimal = keDesimal(tok[4 + i * 3 + 2]) / maks;
+        c = dorong(c, 0.299 * r + 0.587 * g + 0.114 * b);
+    }
+    kembali c;
+}
+
+// Simpan citra sebagai PGM P2 (maxval 255) -> berguna untuk verifikasi.
+fungsi citra_simpan_pgm(c: []desimal, path: teks): kosong {
+    biar lebar: bulat = citra_lebar(c);
+    biar tinggi: bulat = citra_tinggi(c);
+    biar isi: teks = "P2\n" + keTeks(lebar) + " " + keTeks(tinggi) + "\n255\n";
+    biar baris: []teks = [];
+    untuk i dari 0 sampai lebar * tinggi {
+        baris = dorong(baris, keTeks(bulatDari(c[2 + i] * 255.0)));
+    }
+    isi = isi + gabung(baris, " ");
+    tulisFile(path, isi);
+}

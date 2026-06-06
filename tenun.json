@@ -1,0 +1,10 @@
+{
+  "nama": "citra",
+  "versi": "0.1.0",
+  "deskripsi": "Pemrosesan citra untuk Tenun: muat PGM/PPM, grayscale, ambang/binarisasi, ubah ukuran, potong, segmentasi proyeksi. Fondasi pipeline OCR.",
+  "lisensi": "MIT",
+  "penulis": "TenunLang",
+  "berkas": "src/citra.tenun",
+  "kataKunci": ["image", "citra", "pgm", "ppm", "ocr", "grayscale", "threshold", "segmentasi"],
+  "butuh": {}
+}

@@ -1,0 +1,51 @@
+// OCR end-to-end DARI GAMBAR: muat PGM berisi deretan digit, segmentasi tiap
+// karakter, ubah ukuran ke 7x5, lalu kenali dengan MLP (modul belajar).
+// Jalankan: tenun run examples/ocr_gambar.tenun  (butuh berkas angka.pgm)
+impor "../src/citra.tenun";
+impor "../../modul-belajar/src/belajar.tenun";
+
+// --- latih classifier digit 0-9 (pola 7x5) ---
+biar digit: [][]teks = [
+    [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
+    [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
+    ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
+    ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+    ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
+    [".###.", "#....", "#....", "####.", "#...#", "#...#", ".###."],
+    ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+    [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+    [".###.", "#...#", "#...#", ".####", "....#", "....#", ".###."]
+];
+biar X: [][]desimal = [];
+biar Y: [][]desimal = [];
+untuk d dari 0 sampai 10 {
+    X = dorong(X, data_dari_pola(digit[d]));
+    Y = dorong(Y, data_satu_panas(d, 10));
+}
+biar lapisan: []bulat = [35, 24, 10];
+biar bobot: [][][]desimal = jar_bobot_baru(lapisan, 0.5);
+biar bias: [][]desimal = jar_bias_baru(lapisan);
+jar_latih(bobot, bias, X, Y, 3000, 0.5);
+
+// --- muat gambar & kenali ---
+biar gambar: []desimal = citra_muat_pgm("angka.pgm");
+biar biner: []desimal = citra_ambang(gambar, 0.5);   // teks (255) -> 1.0
+
+biar kotak: []desimal = segmen_kolom(biner);          // [x0,x1,x0,x1,...]
+biar jumlah: bulat = panjang(kotak) / 2;
+cetak("jumlah karakter terdeteksi:");
+cetak(jumlah);
+
+biar hasil: teks = "";
+untuk k dari 0 sampai jumlah {
+    biar x0: bulat = bulatDari(kotak[k * 2]);
+    biar x1: bulat = bulatDari(kotak[k * 2 + 1]);
+    biar lebar: bulat = x1 - x0;
+    biar potongan: []desimal = citra_potong(biner, x0, 0, lebar, citra_tinggi(biner));
+    biar kecil: []desimal = citra_ubah_ukuran(potongan, 5, 7);
+    biar tebak: bulat = stat_argmaks(jar_prediksi(bobot, bias, citra_ke_vektor(kecil)));
+    hasil = hasil + keTeks(tebak);
+}
+cetak("teks terbaca:");
+cetak(hasil);

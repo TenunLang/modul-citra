@@ -1,0 +1,47 @@
+// core/citra.tenun
+// Representasi citra grayscale sebagai []desimal:
+//   c[0] = lebar, c[1] = tinggi, c[2..] = piksel (0.0..1.0) row-major.
+// Larik bertipe rujukan, jadi citra_set memodifikasi di tempat.
+
+fungsi citra_lebar(c: []desimal): bulat { kembali bulatDari(c[0]); }
+fungsi citra_tinggi(c: []desimal): bulat { kembali bulatDari(c[1]); }
+
+fungsi citra_piksel(c: []desimal, x: bulat, y: bulat): desimal {
+    kembali c[2 + y * citra_lebar(c) + x];
+}
+
+fungsi citra_set(c: []desimal, x: bulat, y: bulat, v: desimal): kosong {
+    c[2 + y * citra_lebar(c) + x] = v;
+}
+
+// citra kosong (semua piksel = isi).
+fungsi citra_baru(lebar: bulat, tinggi: bulat, isi: desimal): []desimal {
+    biar c: []desimal = [];
+    c = dorong(c, desimalDari(lebar));
+    c = dorong(c, desimalDari(tinggi));
+    untuk i dari 0 sampai lebar * tinggi { c = dorong(c, isi); }
+    kembali c;
+}
+
+// ratakan piksel menjadi vektor [0..1] (masukan classifier OCR).
+fungsi citra_ke_vektor(c: []desimal): []desimal {
+    biar v: []desimal = [];
+    untuk i dari 0 sampai citra_lebar(c) * citra_tinggi(c) {
+        v = dorong(v, c[2 + i]);
+    }
+    kembali v;
+}
+
+// cetak citra sebagai seni ASCII (untuk debug).
+fungsi citra_tampil(c: []desimal): kosong {
+    biar lebar: bulat = citra_lebar(c);
+    biar tinggi: bulat = citra_tinggi(c);
+    untuk y dari 0 sampai tinggi {
+        biar baris: teks = "";
+        untuk x dari 0 sampai lebar {
+            kalau citra_piksel(c, x, y) > 0.5 { baris = baris + "#"; }
+            lain { baris = baris + "."; }
+        }
+        cetak(baris);
+    }
+}
