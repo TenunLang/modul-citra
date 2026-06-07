@@ -13,4 +13,5 @@ jobs:
       - name: Pasang Tenun
         run: curl -fsSL https://raw.githubusercontent.com/TenunLang/Tenun/main/install.sh | bash
       - name: Uji unit
-        run: "$HOME/.tenun/bin/tenun" check .
+        run: |
+          "$HOME/.tenun/bin/tenun" check .
