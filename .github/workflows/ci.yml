@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  uji:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pasang Tenun
+        run: curl -fsSL https://raw.githubusercontent.com/TenunLang/Tenun/main/install.sh | bash
+      - name: Uji unit
+        run: "$HOME/.tenun/bin/tenun" check .

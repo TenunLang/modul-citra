@@ -1,0 +1,6 @@
+impor "../src/citra.tenun";
+biar c: []desimal = citra_baru(2, 3, 0.0);
+tegasSamaBulat(citra_lebar(c), 2, "lebar");
+tegasSamaBulat(citra_tinggi(c), 3, "tinggi");
+citra_set(c, 1, 2, 1.0);
+tegasSamaBulat(bulatDari(citra_piksel(c, 1, 2)), 1, "set lalu baca piksel");

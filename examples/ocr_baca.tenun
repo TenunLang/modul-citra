@@ -5,7 +5,7 @@ impor "../src/citra.tenun";
 impor "../../modul-belajar/src/belajar.tenun";
 
 biar arg: []teks = argumen();
-biar path: teks = "nik.png";
+biar path: teks = "../nik.png";
 kalau panjang(arg) > 0 { path = arg[0]; }
 
 biar bobot: [][][]desimal = jar_muat_bobot("model_font.txt");
